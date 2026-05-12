@@ -39,7 +39,7 @@ Add it to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-fast-md5 = "0.1"
+fast-md5 = "1.0.0"
 ```
 
 One-shot hashing:

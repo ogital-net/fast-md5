@@ -1,0 +1,47 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest="$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::Tag version ($tag) does not match Cargo.toml version ($manifest)"
+            exit 1
+          fi
+
+      - name: Run tests (all features)
+        run: cargo test --workspace --all-features --verbose
+
+      - name: Run doc tests
+        run: cargo test --doc --all-features
+
+      - name: Build no_std (no default features)
+        run: cargo build --no-default-features --verbose
+
+      - name: Dry-run package
+        run: cargo package --verbose
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --verbose

@@ -1,0 +1,44 @@
+[package]
+name = "fast-md5"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "BSD-2-Clause"
+description = "Optimized MD5 with hand-written x86_64 and aarch64 assembly cores, plus a portable Rust fallback."
+readme = "README.md"
+keywords = ["md5", "hash", "asm", "aarch64", "x86_64"]
+categories = ["cryptography", "no-std"]
+repository = "https://github.com/ogital-net/fast-md5"
+homepage = "https://github.com/ogital-net/fast-md5"
+documentation = "https://docs.rs/fast-md5"
+include = [
+    "src/**/*.rs",
+    "benches/**/*.rs",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE",
+]
+
+[dependencies]
+
+[features]
+default = []
+# Disable the architecture-specific assembly backends and use the
+# portable Rust `fallback` implementation on every target. Intended
+# for CI coverage of the fallback on assembly hosts and for downstream
+# debugging; not recommended for production builds on x86_64/aarch64
+# (the fallback is correct but materially slower).
+force-fallback = []
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+md-5 = "0.10"
+aws-lc-sys = "0.40"
+
+[[bench]]
+name = "md5"
+harness = false
+
+[profile.bench]
+lto = true
+codegen-units = 1
